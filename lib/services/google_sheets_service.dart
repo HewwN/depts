@@ -1,4 +1,5 @@
 import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sign_in_as_googleapis_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:googleapis/sheets/v4.dart' as sheets;
@@ -9,6 +10,8 @@ import '../models/debt_transaction.dart';
 import '../models/person_debt.dart';
 
 class GoogleSheetsService {
+  static const _webClientId = String.fromEnvironment('GOOGLE_WEB_CLIENT_ID');
+
   // `drive.file` grants access only to files created or explicitly opened
   // by this app — the app cannot see or modify any other files on the
   // user's Google Drive. It is also sufficient for all Sheets API calls
@@ -17,7 +20,10 @@ class GoogleSheetsService {
     'https://www.googleapis.com/auth/drive.file',
   ];
 
-  final _googleSignIn = GoogleSignIn(scopes: _scopes);
+  late final _googleSignIn = GoogleSignIn(
+    scopes: _scopes,
+    clientId: kIsWeb && _webClientId.isNotEmpty ? _webClientId : null,
+  );
 
   GoogleSignInAccount? _currentUser;
   http.Client? _httpClient;
@@ -32,6 +38,7 @@ class GoogleSheetsService {
   // ── Auth ───────────────────────────────────────────────────────────────────
 
   Future<GoogleSignInAccount?> signIn() async {
+    _ensureWebClientId();
     _currentUser = await _googleSignIn.signIn();
     if (_currentUser != null) {
       await _initClients();
@@ -50,11 +57,21 @@ class GoogleSheetsService {
   }
 
   Future<GoogleSignInAccount?> signInSilently() async {
+    _ensureWebClientId();
     _currentUser = await _googleSignIn.signInSilently();
     if (_currentUser != null) {
       await _initClients();
     }
     return _currentUser;
+  }
+
+  void _ensureWebClientId() {
+    if (kIsWeb && _webClientId.isEmpty) {
+      throw StateError(
+        'GOOGLE_WEB_CLIENT_ID is not configured. Run with '
+        '--dart-define=GOOGLE_WEB_CLIENT_ID=<web-oauth-client-id>.',
+      );
+    }
   }
 
   Future<void> _initClients() async {
