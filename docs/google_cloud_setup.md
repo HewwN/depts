@@ -30,9 +30,8 @@ In **APIs & Services → Library**, enable:
 
 1. Go to **APIs & Services → Credentials → Create Credentials → OAuth client ID**.
 2. Choose **Android**.
-3. Enter your package name (e.g., `com.example.depts`).
+3. Enter the package name `com.heww.depts`.
 4. Run `keytool -keystore ~/.android/debug.keystore -list -v` and paste the **SHA-1** fingerprint.
-5. Download `google-services.json` and place it in `android/app/`.
 
 ### iOS
 
@@ -51,21 +50,7 @@ In **APIs & Services → Library**, enable:
 4. Copy the generated client ID. A Desktop, Android, or iOS client ID cannot
   be used for Flutter web.
 
-## 5. Add `google-services.json` to Android
-
-Place the file at `android/app/google-services.json`.
-
-In `android/app/build.gradle` add:
-```gradle
-apply plugin: 'com.google.gms.google-services'
-```
-
-And in `android/build.gradle` (project-level):
-```gradle
-classpath 'com.google.gms:google-services:4.4.1'
-```
-
-## 6. iOS Info.plist URL Scheme
+## 5. iOS Info.plist URL Scheme
 
 Add the reversed client ID as a URL scheme in `ios/Runner/Info.plist`:
 
@@ -86,7 +71,7 @@ Add the reversed client ID as a URL scheme in `ios/Runner/Info.plist`:
 Replace `YOUR_CLIENT_ID` with the reversed client ID from `GoogleService-Info.plist`
 (field `REVERSED_CLIENT_ID`).
 
-## 7. Run the App
+## 6. Run the App
 
 For Android or iOS:
 
