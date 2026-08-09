@@ -130,7 +130,7 @@ class _PersonTile extends StatelessWidget {
 
     return ListTile(
       leading: CircleAvatar(
-        backgroundColor: color.withOpacity(0.2),
+        backgroundColor: color.withValues(alpha: 0.2),
         child: Text(
           person.name.isNotEmpty ? person.name[0].toUpperCase() : '?',
           style: TextStyle(color: color, fontWeight: FontWeight.bold),

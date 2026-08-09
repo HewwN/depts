@@ -76,9 +76,7 @@ class GoogleSheetsService {
           e.toString().contains('invalid_grant')) {
         // Force token refresh.
         _currentUser = await _googleSignIn.signInSilently(reAuthenticate: true);
-        if (_currentUser == null) {
-          _currentUser = await _googleSignIn.signIn();
-        }
+        _currentUser ??= await _googleSignIn.signIn();
         if (_currentUser == null) throw Exception('Re-authentication failed.');
         await _initClients();
         return await action();

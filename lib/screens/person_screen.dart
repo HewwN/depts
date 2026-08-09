@@ -95,7 +95,7 @@ class _PersonScreenState extends State<PersonScreen> {
       children: [
         Container(
           width: double.infinity,
-          color: balanceColor.withOpacity(0.1),
+          color: balanceColor.withValues(alpha: 0.1),
           padding: const EdgeInsets.all(16),
           child: Column(
             children: [
@@ -178,7 +178,7 @@ class _CloseMarkerTile extends StatelessWidget {
     return ListTile(
       dense: true,
       leading: CircleAvatar(
-        backgroundColor: Colors.grey.withOpacity(0.15),
+        backgroundColor: Colors.grey.withValues(alpha: 0.15),
         child: const Icon(Icons.check_circle_outline, color: Colors.grey),
       ),
       title: const Text(
@@ -206,7 +206,7 @@ class _TransactionTile extends StatelessWidget {
 
     return ListTile(
       leading: CircleAvatar(
-        backgroundColor: color.withOpacity(0.15),
+        backgroundColor: color.withValues(alpha: 0.15),
         child: Icon(
           isGave ? Icons.arrow_upward : Icons.arrow_downward,
           color: color,
@@ -227,8 +227,8 @@ class _TransactionTile extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
             decoration: BoxDecoration(
               color: isClosed
-                  ? Colors.grey.withOpacity(0.2)
-                  : Colors.blue.withOpacity(0.1),
+                  ? Colors.grey.withValues(alpha: 0.2)
+                  : Colors.blue.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
