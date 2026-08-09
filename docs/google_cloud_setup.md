@@ -16,9 +16,11 @@ In **APIs & Services → Library**, enable:
 1. Go to **APIs & Services → OAuth consent screen**.
 2. Choose **External** (or Internal if your organisation is on Google Workspace).
 3. Fill in App name, support email, and developer contact.
-4. Add the following **scopes**:
+4. Add the following **scope**:
    - `https://www.googleapis.com/auth/drive.file`
-   - `https://www.googleapis.com/auth/spreadsheets`
+
+   This scope limits the app to files it creates or that the user explicitly
+   opens with it — the app cannot access any other files on the user's Drive.
 5. Add test users while the app is in testing mode.
 
 ## 4. Create OAuth Credentials

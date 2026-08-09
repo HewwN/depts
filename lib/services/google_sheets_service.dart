@@ -8,9 +8,12 @@ import '../models/debt_transaction.dart';
 import '../models/person_debt.dart';
 
 class GoogleSheetsService {
+  // `drive.file` grants access only to files created or explicitly opened
+  // by this app — the app cannot see or modify any other files on the
+  // user's Google Drive. It is also sufficient for all Sheets API calls
+  // used here (create, get, values.get/update/append, batchUpdate).
   static const _scopes = [
     'https://www.googleapis.com/auth/drive.file',
-    'https://www.googleapis.com/auth/spreadsheets',
   ];
 
   final _googleSignIn = GoogleSignIn(scopes: _scopes);
