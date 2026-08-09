@@ -131,6 +131,9 @@ class _PersonScreenState extends State<PersonScreen> {
                   separatorBuilder: (_, __) => const Divider(height: 1),
                   itemBuilder: (context, i) {
                     final t = person.transactions[i];
+                    if (t.isCloseMarker) {
+                      return _CloseMarkerTile(transaction: t);
+                    }
                     return _TransactionTile(transaction: t);
                   },
                 ),
@@ -145,7 +148,7 @@ class _PersonScreenState extends State<PersonScreen> {
       builder: (_) => AlertDialog(
         title: const Text('Close all debts?'),
         content: Text(
-            'This will mark all active transactions for ${widget.personName} as CLOSED.'),
+            'This will add a CLOSE record marking all active transactions for ${widget.personName} as closed. Existing records are never modified.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -161,6 +164,30 @@ class _PersonScreenState extends State<PersonScreen> {
             child: const Text('Close'),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _CloseMarkerTile extends StatelessWidget {
+  final DebtTransaction transaction;
+  const _CloseMarkerTile({required this.transaction});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      dense: true,
+      leading: CircleAvatar(
+        backgroundColor: Colors.grey.withOpacity(0.15),
+        child: const Icon(Icons.check_circle_outline, color: Colors.grey),
+      ),
+      title: const Text(
+        'All debts closed',
+        style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w600),
+      ),
+      subtitle: Text(
+        transaction.date,
+        style: const TextStyle(fontSize: 12, color: Colors.grey),
       ),
     );
   }

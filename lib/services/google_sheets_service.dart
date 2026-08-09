@@ -3,6 +3,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:googleapis/sheets/v4.dart' as sheets;
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 
 import '../models/debt_transaction.dart';
 import '../models/person_debt.dart';
@@ -172,12 +173,28 @@ class GoogleSheetsService {
       final response = await _sheetsApi!.spreadsheets.values
           .get(_spreadsheetId!, range);
       final rows = response.values ?? [];
-      return List.generate(rows.length, (i) {
+      final transactions = List.generate(rows.length, (i) {
         return DebtTransaction.fromRow(rows[i], i + 2); // row 1 = header
       });
+      return _applyCloseMarkers(transactions);
     } catch (_) {
       return [];
     }
+  }
+
+  /// Derive effective statuses from CLOSE marker rows (append-only ledger):
+  /// every transaction that appears before a CLOSE marker is considered closed.
+  List<DebtTransaction> _applyCloseMarkers(List<DebtTransaction> transactions) {
+    final lastCloseIndex =
+        transactions.lastIndexWhere((t) => t.isCloseMarker);
+    if (lastCloseIndex < 0) return transactions;
+    return List.generate(transactions.length, (i) {
+      final t = transactions[i];
+      if (i <= lastCloseIndex && t.status != TransactionStatus.closed) {
+        return t.copyWith(status: TransactionStatus.closed);
+      }
+      return t;
+    });
   }
 
   /// Add a new sheet (person) and write the header row.
@@ -235,51 +252,39 @@ class GoogleSheetsService {
   }
 
   /// Close all active transactions for [personName].
+  ///
+  /// Append-only: instead of updating existing rows, a CLOSE marker row is
+  /// appended. All transactions above the marker are treated as closed when
+  /// the sheet is read back. Existing rows are never updated or deleted.
   Future<void> closeAllTransactions(String personName) async {
     _ensureReady();
     return _withRetry(() async {
       final transactions = await _fetchTransactions(personName);
-      final activeTransactions =
-          transactions.where((t) => t.status == TransactionStatus.active).toList();
+      final hasActive =
+          transactions.any((t) => t.status == TransactionStatus.active);
 
-      if (activeTransactions.isEmpty) return;
+      if (!hasActive) return;
 
-      // Build individual update requests for each active row.
-      final requests = activeTransactions.map((t) {
-        final range = "'$personName'!D${t.rowIndex}";
-        return sheets.Request(
-          updateCells: sheets.UpdateCellsRequest(
-            range: sheets.GridRange(
-              sheetId: null, // resolved via range string approach below
-            ),
-            fields: 'userEnteredValue',
-            rows: [
-              sheets.RowData(values: [
-                sheets.CellData(
-                  userEnteredValue:
-                      sheets.ExtendedValue(stringValue: 'CLOSED'),
-                ),
-              ]),
-            ],
-          ),
-        );
-      }).toList();
+      final marker = DebtTransaction(
+        date: DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now()),
+        amount: 0,
+        type: TransactionType.close,
+        status: TransactionStatus.closed,
+        note: 'Закрытие всех долгов',
+        rowIndex: -1,
+      );
 
-      // Use values.update per row (simpler than batchUpdate with sheetId lookup).
-      for (final t in activeTransactions) {
-        final range = "'$personName'!D${t.rowIndex}";
-        await _sheetsApi!.spreadsheets.values.update(
-          sheets.ValueRange(
-            range: range,
-            values: [
-              ['CLOSED'],
-            ],
-          ),
-          _spreadsheetId!,
-          range,
-          valueInputOption: 'USER_ENTERED',
-        );
-      }
+      final range = "'$personName'!A:E";
+      await _sheetsApi!.spreadsheets.values.append(
+        sheets.ValueRange(
+          range: range,
+          values: [marker.toRow()],
+        ),
+        _spreadsheetId!,
+        range,
+        valueInputOption: 'USER_ENTERED',
+        insertDataOption: 'INSERT_ROWS',
+      );
 
       _cachedPeople = null;
     });
